@@ -254,26 +254,26 @@ battery3.rect.height = 50
 batteries = [battery1, battery2, battery3]
 enemies = [enemy_1, enemy_2, enemy_3, enemy_4, enemy_5]
 
-sound_closed_door = pg.mixer.Sound('sounds/closed_door.wav')
-sound_turn_off = pg.mixer.Sound('sounds/turn_off.wav')
-sound_flash = pg.mixer.Sound('sounds/camera_flash.wav')
-sound_take_item = pg.mixer.Sound('sounds/take_item.wav')
+sound_closed_door = pg.mixer.Sound('sounds/closed_door.ogg')
+sound_turn_off = pg.mixer.Sound('sounds/turn_off.ogg')
+sound_flash = pg.mixer.Sound('sounds/camera_flash.ogg')
+sound_take_item = pg.mixer.Sound('sounds/take_item.ogg')
 
-sound_legs = pg.mixer.Sound('sounds/sound_legs.wav')
-sound_ghost = pg.mixer.Sound('sounds/sound_ghost.wav')
-sound_voice = pg.mixer.Sound('sounds/sound_voice.wav')
-sound_wheels = pg.mixer.Sound('sounds/sound_wheels.wav')
-sound_cry = pg.mixer.Sound('sounds/sound_cry.wav')
-sound_run = pg.mixer.Sound('sounds/sound_run.wav')
+sound_legs = pg.mixer.Sound('sounds/sound_legs.ogg')
+sound_ghost = pg.mixer.Sound('sounds/sound_ghost.ogg')
+sound_voice = pg.mixer.Sound('sounds/sound_voice.ogg')
+sound_wheels = pg.mixer.Sound('sounds/sound_wheels.ogg')
+sound_cry = pg.mixer.Sound('sounds/sound_cry.ogg')
+sound_run = pg.mixer.Sound('sounds/sound_run.ogg')
 
-game_over_sound = pg.mixer.Sound('sounds/game_over.wav')
-laugh_sound = pg.mixer.Sound('sounds/laugh_sound.wav')
-game_win_sound = pg.mixer.Sound('sounds/game_win.wav')
+game_over_sound = pg.mixer.Sound('sounds/game_over.ogg')
+laugh_sound = pg.mixer.Sound('sounds/laugh_sound.ogg')
+game_win_sound = pg.mixer.Sound('sounds/game_win.ogg')
 
-sound_find_item = pg.mixer.Sound('sounds/find_item.wav')
-sound_search = pg.mixer.Sound('sounds/search.wav')
+sound_find_item = pg.mixer.Sound('sounds/find_item.ogg')
+sound_search = pg.mixer.Sound('sounds/search.ogg')
 
-sound_heart = pg.mixer.Sound('sounds/sound_heart.wav')
+sound_heart = pg.mixer.Sound('sounds/sound_heart.ogg')
 
 channel_search = pg.mixer.Channel(5)
 

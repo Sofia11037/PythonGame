@@ -43,7 +43,7 @@ class Player(pg.sprite.Sprite):
 
         self.moving = False
 
-        self.steps = pg.mixer.Sound('sounds/steps.wav')
+        self.steps = pg.mixer.Sound('sounds/steps.ogg')
         self.sound_playing = False
 
 
