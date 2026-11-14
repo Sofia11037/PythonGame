@@ -280,9 +280,9 @@ sound_search_started = False
 
 sounds_enemies = [sound_legs, sound_ghost, sound_voice, sound_wheels, sound_run]
 
-pg.mixer.music.load('music/main_music.mp3')
-past_music = pg.mixer.Sound('music/past_music.mp3')
-music_channel = pg.mixer.Channel(0)
+pg.mixer.music.load('music/main_music.ogg')
+past_music = pg.mixer.Sound('music/past_music.ogg')
+music_channel = pg.mixer.Channel(0) 
 
 past_music_paused = False
 
