@@ -7,6 +7,7 @@ from items.battery import Battery
 
 import sqlite3
 import asyncio
+import pygbag
 
 pg.init()
 pg.mixer.init()
@@ -657,7 +658,7 @@ async def main():
     global past_music_paused
     global player_unfreeze_time
     global count_documents
-    
+
     state = True
     while state:
         for event in pg.event.get():
