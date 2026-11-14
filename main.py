@@ -6,6 +6,7 @@ from items.camera import Camera
 from items.battery import Battery
 
 import sqlite3
+import asyncio
 
 pg.init()
 pg.mixer.init()
@@ -645,312 +646,330 @@ def go_to_room(room_name, spawn_side):
     change_room(room_name, spawn_side)
     fade_in(fade_surface, BLACK)
 
-state = True
-while state:
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            state = False
-        elif event.type == pg.KEYDOWN:
+async def main():
+    global state
+    global timer_active, timer_paused, remaining_time, end_time
+    global power_battery, camera_allowed
+    global enemy_already_hit
+    global legs_playing, ghost_playing, voice_playing
+    global wheels_playing, cry_playing
+    global operating_timer_active, operating_past_timer
+    global past_music_paused
+    global player_unfreeze_time
+    global count_documents
+    
+    state = True
+    while state:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                state = False
+            elif event.type == pg.KEYDOWN:
 
-            if event.key == pg.K_e:
+                if event.key == pg.K_e:
 
-                if player.rect.left <= 0:
-                    next_room = rooms[active_room].get('left')
-                    if next_room:
-                        go_to_room(next_room, 'right')
-
-                elif player.rect.right >= width:
-                    next_room = rooms[active_room].get('right')
-                    if next_room:
-                        go_to_room(next_room, 'left')
-
-                elif active_room == 'Wards':
-                    if player.rect.colliderect(doors[0]):
+                    if player.rect.left <= 0:
                         next_room = rooms[active_room].get('left')
                         if next_room:
                             go_to_room(next_room, 'right')
 
-                    if camera.picked_up:
-                        pick_up_battery(battery3)
-
-                        if camera.camera_on:
-                            for i in range(len(documents_wards)):
-                                if player.rect.colliderect(documents_wards[i]):
-                                    pick_up_item(f'documents_wards_{i}')
-                                    del documents_wards[i]
-                                    count_documents += 1
-                                    print('УРА')
-                                    break
-
-                elif active_room == 'Warehouse':
-                    if player.rect.colliderect(doors[0]):
+                    elif player.rect.right >= width:
                         next_room = rooms[active_room].get('right')
                         if next_room:
                             go_to_room(next_room, 'left')
 
-                    pick_up_battery(battery2)
-
-                    if camera.camera_on:
-                        for i in range(len(documents_warehouse)):
-                            if player.rect.colliderect(documents_warehouse[i]):
-                                pick_up_item(f'documents_warehouse_{i}')
-                                del documents_warehouse[i]
-                                count_documents += 1
-                                print('УРА')
-                                break
-
-                    if player.rect.colliderect(closed_doors[0]):
-                        if camera.camera_on:
-                            next_room = rooms_past[active_room].get('up')
+                    elif active_room == 'Wards':
+                        if player.rect.colliderect(doors[0]):
+                            next_room = rooms[active_room].get('left')
                             if next_room:
-                                go_to_room(next_room, 'down')
+                                go_to_room(next_room, 'right')
 
-                        else:
-                            sound_closed_door.play()
-                            print('не')
+                        if camera.picked_up:
+                            pick_up_battery(battery3)
 
-                elif active_room == 'Hallway':
-                    if player.rect.colliderect(doors[0]):
-                        next_room = rooms[active_room].get('up')
+                            if camera.camera_on:
+                                for i in range(len(documents_wards)):
+                                    if player.rect.colliderect(documents_wards[i]):
+                                        pick_up_item(f'documents_wards_{i}')
+                                        del documents_wards[i]
+                                        count_documents += 1
+                                        print('УРА')
+                                        break
 
-                        if next_room:
-                            go_to_room(next_room, 'down')
+                    elif active_room == 'Warehouse':
+                        if player.rect.colliderect(doors[0]):
+                            next_room = rooms[active_room].get('right')
+                            if next_room:
+                                go_to_room(next_room, 'left')
 
-                    if player.rect.colliderect(closed_doors[0]):
-                        if count_documents == 6:
-                            game_win()
-                        else:
-                            sound_closed_door.play()
-                            print('не')
+                        pick_up_battery(battery2)
 
-                    if not camera.picked_up:
-                        if player.rect.colliderect(camera.rect):
-                            sound_turn_off.play()
-                            camera.picked_up = True
-                            pick_up_item(camera.name)
-                            print('берет')
-                    else:
-                        if not camera.camera_on:
-                            for i in range(len(documents_hallway)):
-                                if player.rect.colliderect(documents_hallway[i]):
-                                    pick_up_item(f'document_hallway_{i}')
-                                    del documents_hallway[i]
+                        if camera.camera_on:
+                            for i in range(len(documents_warehouse)):
+                                if player.rect.colliderect(documents_warehouse[i]):
+                                    pick_up_item(f'documents_warehouse_{i}')
+                                    del documents_warehouse[i]
                                     count_documents += 1
-
                                     print('УРА')
                                     break
 
-                elif active_room == 'Operating_room':
-                    if player.rect.colliderect(doors[0]):
-                        next_room = rooms[active_room].get('down')
-                        if next_room:
-                            go_to_room(next_room, 'up')
+                        if player.rect.colliderect(closed_doors[0]):
+                            if camera.camera_on:
+                                next_room = rooms_past[active_room].get('up')
+                                if next_room:
+                                    go_to_room(next_room, 'down')
 
-                    pick_up_battery(battery1)
+                            else:
+                                sound_closed_door.play()
+                                print('не')
 
-                    if not camera.camera_on:
-                        for i in range(len(documents_operating_room)):
-                            if player.rect.colliderect(documents_operating_room[i]):
-                                pick_up_item(f'documents_operating_room_{i}')
-                                del documents_operating_room[i]
-                                count_documents += 1
-                                print('УРА')
-                                break
+                    elif active_room == 'Hallway':
+                        if player.rect.colliderect(doors[0]):
+                            next_room = rooms[active_room].get('up')
 
-                elif active_room == 'Office':
-                    if player.rect.colliderect(doors[0]):
-                        if camera.camera_on:
-                            next_room = rooms_past[active_room].get('down')
+                            if next_room:
+                                go_to_room(next_room, 'down')
+
+                        if player.rect.colliderect(closed_doors[0]):
+                            if count_documents == 6:
+                                game_win()
+                            else:
+                                sound_closed_door.play()
+                                print('не')
+
+                        if not camera.picked_up:
+                            if player.rect.colliderect(camera.rect):
+                                sound_turn_off.play()
+                                camera.picked_up = True
+                                pick_up_item(camera.name)
+                                print('берет')
                         else:
+                            if not camera.camera_on:
+                                for i in range(len(documents_hallway)):
+                                    if player.rect.colliderect(documents_hallway[i]):
+                                        pick_up_item(f'document_hallway_{i}')
+                                        del documents_hallway[i]
+                                        count_documents += 1
+
+                                        print('УРА')
+                                        break
+
+                    elif active_room == 'Operating_room':
+                        if player.rect.colliderect(doors[0]):
                             next_room = rooms[active_room].get('down')
+                            if next_room:
+                                go_to_room(next_room, 'up')
 
-                        if next_room:
-                            go_to_room(next_room, 'up')
+                        pick_up_battery(battery1)
 
-                    if not camera.camera_on:
-                        for i in range(len(documents_office)):
-                            if player.rect.colliderect(documents_office[i]):
-                                pick_up_item(f'documents_office_{i}')
-                                del documents_office[i]
-                                count_documents += 1
-                                print('УРА')
-                                break
+                        if not camera.camera_on:
+                            for i in range(len(documents_operating_room)):
+                                if player.rect.colliderect(documents_operating_room[i]):
+                                    pick_up_item(f'documents_operating_room_{i}')
+                                    del documents_operating_room[i]
+                                    count_documents += 1
+                                    print('УРА')
+                                    break
 
+                    elif active_room == 'Office':
+                        if player.rect.colliderect(doors[0]):
+                            if camera.camera_on:
+                                next_room = rooms_past[active_room].get('down')
+                            else:
+                                next_room = rooms[active_room].get('down')
 
-            if event.key == pg.K_SPACE and camera.picked_up:
-                if camera_allowed:
-                    flash()
+                            if next_room:
+                                go_to_room(next_room, 'up')
 
-    if player.rect.left < 0:
-        player.rect.left = 0
-    if player.rect.right > width:
-        player.rect.right = width
-    if player.rect.top < 0:
-        player.rect.top = 0
-    if player.rect.bottom > height:
-        player.rect.bottom = height
-
-    collision_with_enemy = (
-            (player.rect.colliderect(enemy_1.rect) and active_room == 'Hallway') or
-            (player.rect.colliderect(enemy_2.rect) and active_room == 'Wards') or
-            (player.rect.colliderect(enemy_3.rect) and active_room == 'Warehouse') or
-            (player.rect.colliderect(enemy_4.rect) and active_room == 'Operating_room') or
-            (player.rect.colliderect(enemy_5.rect) and active_room == 'Operating_room')
-    )
-
-    if not camera.camera_on and camera.picked_up:
-        if collision_with_enemy:
-            game_over()
-
-    elif camera.picked_up and camera.camera_on:
-        if collision_with_enemy:
-            if not enemy_already_hit:
-                sound_heart.play(-1)
-                enemy_already_hit = True
-        else:
-            sound_heart.stop()
-            enemy_already_hit = False
+                        if not camera.camera_on:
+                            for i in range(len(documents_office)):
+                                if player.rect.colliderect(documents_office[i]):
+                                    pick_up_item(f'documents_office_{i}')
+                                    del documents_office[i]
+                                    count_documents += 1
+                                    print('УРА')
+                                    break
 
 
-    if timer_active:
-        if timer_paused:
-            time_left = remaining_time
-        else:
-            time_left = end_time - pg.time.get_ticks()
+                if event.key == pg.K_SPACE and camera.picked_up:
+                    if camera_allowed:
+                        flash()
 
-        seconds_left = max(0.0, time_left / 1000)
+        if player.rect.left < 0:
+            player.rect.left = 0
+        if player.rect.right > width:
+            player.rect.right = width
+        if player.rect.top < 0:
+            player.rect.top = 0
+        if player.rect.bottom > height:
+            player.rect.bottom = height
 
+        collision_with_enemy = (
+                (player.rect.colliderect(enemy_1.rect) and active_room == 'Hallway') or
+                (player.rect.colliderect(enemy_2.rect) and active_room == 'Wards') or
+                (player.rect.colliderect(enemy_3.rect) and active_room == 'Warehouse') or
+                (player.rect.colliderect(enemy_4.rect) and active_room == 'Operating_room') or
+                (player.rect.colliderect(enemy_5.rect) and active_room == 'Operating_room')
+        )
 
-        if seconds_left > 20:
-            power_battery = 3
-        elif seconds_left > 10:
-            power_battery = 2
-        elif seconds_left > 0:
-            power_battery = 1
-        else:
-            flash()
-            power_battery = 0
-            timer_active = False
-            camera_allowed = False
+        if not camera.camera_on and camera.picked_up:
+            if collision_with_enemy:
+                game_over()
 
-
-    if active_room == 'Hallway' and camera.picked_up and not camera.camera_on:
-        if not legs_playing:
-            sound_legs.play(-1)
-            legs_playing = True
-    else:
-        if legs_playing:
-            sound_legs.stop()
-            legs_playing = False
-
-    if active_room == 'Operating_room' and camera.picked_up and not camera.camera_on:
-        if not ghost_playing:
-            sound_ghost.play(-1)
-            ghost_playing = True
-    else:
-        if ghost_playing:
-            sound_ghost.stop()
-            ghost_playing = False
-
-
-    if active_room == 'Warehouse' and camera.picked_up:
-        if not voice_playing:
-            sound_voice.play(-1)
-            voice_playing = True
-    else:
-        if voice_playing:
-            sound_voice.stop()
-            voice_playing = False
-
-
-    if active_room == 'Office' and camera.picked_up:
-        if not cry_playing:
-            sound_cry.play(-1)
-            cry_playing = True
-    else:
-        if cry_playing:
-            sound_cry.stop()
-            cry_playing = False
-
-    if not camera.camera_on and active_room == 'Wards' and camera.picked_up:
-        if not wheels_playing:
-            sound_wheels.play(-1)
-            wheels_playing = True
-    else:
-        if wheels_playing:
-            sound_wheels.stop()
-            wheels_playing = False
-
-    if not camera.picked_up or camera.camera_on:
-        pg.mixer.music.pause()
-    else:
-        pg.mixer.music.unpause()
-
-
-    if camera.picked_up and camera.camera_on and not music_channel.get_busy():
-        music_channel.play(past_music, -1)
-        past_music_paused = False
-
-
-    if camera.camera_on and active_room != 'Warehouse' and active_room != 'Office':
-        if past_music_paused:
-            music_channel.unpause()
-            past_music_paused = False
-    else:
-        if not past_music_paused:
-            music_channel.pause()
-            past_music_paused = True
-
-    if player.moving and active_room == 'Operating_room':
-        if enemy_4.speed < 0:
-            enemy_4.speed = -14
-        else:
-            enemy_4.speed = 14
-    else:
-        if enemy_4.speed < 0:
-            enemy_4.speed = -3
-        else:
-            enemy_4.speed = 3
-
-    if active_room == 'Operating_room' and camera.camera_on:
-
-        if not operating_timer_active:
-            sound_run.play()
-            music_channel.pause()
-
-            operating_past_timer = pg.time.get_ticks() + 5000
-            operating_timer_active = True
-
-        elif operating_timer_active:
-            if pg.time.get_ticks() >= operating_past_timer:
-                operating_timer_active = False
-
+        elif camera.picked_up and camera.camera_on:
+            if collision_with_enemy:
                 if not enemy_already_hit:
                     sound_heart.play(-1)
                     enemy_already_hit = True
-                else:
-                    sound_heart.stop()
-                    enemy_already_hit = False
-
-                game_over()
-    else:
-        if operating_timer_active:
-            operating_timer_active = False
+            else:
+                sound_heart.stop()
+                enemy_already_hit = False
 
 
-    camera.update(15, 15)
+        if timer_active:
+            if timer_paused:
+                time_left = remaining_time
+            else:
+                time_left = end_time - pg.time.get_ticks()
 
-    for battery in batteries:
-        battery.update(35, 25)
+            seconds_left = max(0.0, time_left / 1000)
 
 
-    player.update(player_unfreeze_time)
-    enemy_1.update('x', 100, 400)
-    enemy_2.update('x', 200, 900)
-    enemy_3.update('y', 50, 290)
-    enemy_4.update('x', 200, 900)
-    draw()
+            if seconds_left > 20:
+                power_battery = 3
+            elif seconds_left > 10:
+                power_battery = 2
+            elif seconds_left > 0:
+                power_battery = 1
+            else:
+                flash()
+                power_battery = 0
+                timer_active = False
+                camera_allowed = False
 
-    clock.tick(FPS)
-    pg.display.update()
 
+        if active_room == 'Hallway' and camera.picked_up and not camera.camera_on:
+            if not legs_playing:
+                sound_legs.play(-1)
+                legs_playing = True
+        else:
+            if legs_playing:
+                sound_legs.stop()
+                legs_playing = False
+
+        if active_room == 'Operating_room' and camera.picked_up and not camera.camera_on:
+            if not ghost_playing:
+                sound_ghost.play(-1)
+                ghost_playing = True
+        else:
+            if ghost_playing:
+                sound_ghost.stop()
+                ghost_playing = False
+
+
+        if active_room == 'Warehouse' and camera.picked_up:
+            if not voice_playing:
+                sound_voice.play(-1)
+                voice_playing = True
+        else:
+            if voice_playing:
+                sound_voice.stop()
+                voice_playing = False
+
+
+        if active_room == 'Office' and camera.picked_up:
+            if not cry_playing:
+                sound_cry.play(-1)
+                cry_playing = True
+        else:
+            if cry_playing:
+                sound_cry.stop()
+                cry_playing = False
+
+        if not camera.camera_on and active_room == 'Wards' and camera.picked_up:
+            if not wheels_playing:
+                sound_wheels.play(-1)
+                wheels_playing = True
+        else:
+            if wheels_playing:
+                sound_wheels.stop()
+                wheels_playing = False
+
+        if not camera.picked_up or camera.camera_on:
+            pg.mixer.music.pause()
+        else:
+            pg.mixer.music.unpause()
+
+
+        if camera.picked_up and camera.camera_on and not music_channel.get_busy():
+            music_channel.play(past_music, -1)
+            past_music_paused = False
+
+
+        if camera.camera_on and active_room != 'Warehouse' and active_room != 'Office':
+            if past_music_paused:
+                music_channel.unpause()
+                past_music_paused = False
+        else:
+            if not past_music_paused:
+                music_channel.pause()
+                past_music_paused = True
+
+        if player.moving and active_room == 'Operating_room':
+            if enemy_4.speed < 0:
+                enemy_4.speed = -14
+            else:
+                enemy_4.speed = 14
+        else:
+            if enemy_4.speed < 0:
+                enemy_4.speed = -3
+            else:
+                enemy_4.speed = 3
+
+        if active_room == 'Operating_room' and camera.camera_on:
+
+            if not operating_timer_active:
+                sound_run.play()
+                music_channel.pause()
+
+                operating_past_timer = pg.time.get_ticks() + 5000
+                operating_timer_active = True
+
+            elif operating_timer_active:
+                if pg.time.get_ticks() >= operating_past_timer:
+                    operating_timer_active = False
+
+                    if not enemy_already_hit:
+                        sound_heart.play(-1)
+                        enemy_already_hit = True
+                    else:
+                        sound_heart.stop()
+                        enemy_already_hit = False
+
+                    game_over()
+        else:
+            if operating_timer_active:
+                operating_timer_active = False
+
+
+        camera.update(15, 15)
+
+        for battery in batteries:
+            battery.update(35, 25)
+
+
+        player.update(player_unfreeze_time)
+        enemy_1.update('x', 100, 400)
+        enemy_2.update('x', 200, 900)
+        enemy_3.update('y', 50, 290)
+        enemy_4.update('x', 200, 900)
+        draw()
+
+        clock.tick(FPS)
+        pg.display.update()
+        await asyncio.sleep(0)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+    pg.quit()
+    connection.close()
